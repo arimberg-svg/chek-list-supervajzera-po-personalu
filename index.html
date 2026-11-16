@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Чек-лист супервайзера по персоналу — Академия УМ</title>
+  <meta name="description" content="Полный чек-лист супервайзера по персоналу: СПК, ПК, РТЗ, кассир, кладовщик, МОП. Академия УМ." />
+  <meta name="theme-color" content="#222222" />
+  <style>
+    :root {
+      --ink: #222222;
+      --muted: #666666;
+      --soft: #888888;
+      --paper: #ffffff;
+      --line: #cccccc;
+      --page-w: 210mm;
+      --font: Arial, "Helvetica Neue", Helvetica, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.45;
+      background: #f0f0f0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .toolbar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #555;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 400;
+    }
+    .toolbar .brand {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .toolbar .brand img {
+      height: 28px; width: auto;
+      background: #fff; padding: 2px 4px;
+      filter: grayscale(1) opacity(0.85);
+    }
+    .toolbar .actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+    .toolbar button {
+      border: 1px solid #ccc;
+      background: transparent;
+      color: #fff;
+      font: inherit;
+      font-size: 12px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .toolbar button.primary { background: #fff; color: #444; border-color: #fff; }
+    .toolbar button:hover { background: #666; }
+    .toolbar .status { font-size: 11px; opacity: .85; }
+
+    .sheet-wrap {
+      width: min(var(--page-w), calc(100% - 16px));
+      margin: 12px auto 32px;
+    }
+    .sheet {
+      background: var(--paper);
+      border: 1px solid #bbb;
+      box-shadow: 0 1px 6px rgba(0,0,0,.08);
+      padding: 16px 18px 22px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .motto {
+      text-align: center;
+      font-weight: 400;
+      color: #888;
+      font-size: 12px;
+      margin: 0 0 8px;
+      letter-spacing: .04em;
+    }
+    .title-block {
+      text-align: center;
+      margin: 0 0 14px;
+      padding: 0 0 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    .title-block .logo {
+      display: block;
+      width: min(140px, 42%);
+      height: auto;
+      margin: 0 auto 6px;
+      filter: grayscale(1) opacity(0.75);
+    }
+    .eyebrow {
+      margin: 0;
+      font-size: 11px;
+      color: #999;
+      font-weight: 400;
+    }
+    h1 {
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 1.25;
+      margin: 4px 0 2px;
+      color: #555;
+    }
+
+    .meta {
+      display: grid;
+      gap: 8px;
+      margin: 0 0 12px;
+    }
+    .field {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 8px;
+      align-items: end;
+      font-size: 14px;
+    }
+    .field span { color: #444; padding-bottom: 2px; }
+    .field .ink, .admit .ink {
+      border: none;
+      border-bottom: 1px solid #999;
+      background: transparent;
+      font: inherit;
+      font-size: 15px;
+      padding: 2px 4px;
+      color: var(--ink);
+      width: 100%;
+      min-width: 0;
+    }
+    .field .ink:focus, .admit .ink:focus { outline: none; border-bottom-color: #555; }
+
+    .scheme {
+      margin: 0 0 16px;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.45;
+    }
+    .scheme b { font-weight: 600; color: #444; }
+
+    .toc {
+      margin: 0 0 16px;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      font-size: 13px;
+      color: #555;
+      line-height: 1.5;
+    }
+    .toc b { color: #444; }
+
+    .block {
+      margin: 0 0 16px;
+      page-break-inside: avoid;
+    }
+    h2 {
+      font-weight: 600;
+      font-size: 16px;
+      line-height: 1.3;
+      color: #444;
+      margin: 0 0 6px;
+      page-break-after: avoid;
+    }
+    .when {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: #777;
+    }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 8px;
+      align-items: start;
+      cursor: pointer;
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .item input {
+      position: absolute;
+      opacity: 0;
+      width: 1px;
+      height: 1px;
+      pointer-events: none;
+    }
+    .item .box {
+      width: 16px;
+      height: 16px;
+      margin-top: 2px;
+      border: 1.5px solid #666;
+      background: #fff;
+      flex: 0 0 auto;
+    }
+    .item input:checked + .box {
+      background: #555;
+      border-color: #555;
+      box-shadow: inset 0 0 0 2px #fff;
+    }
+    .item .txt { color: var(--ink); }
+
+    .admit {
+      margin: 18px 0 12px;
+      padding-top: 12px;
+      border-top: 1px solid #ccc;
+      page-break-inside: avoid;
+    }
+    .admit h2 { margin-bottom: 10px; }
+    .admit-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 18px;
+      align-items: center;
+      margin: 0 0 10px;
+      font-size: 15px;
+    }
+    .admit-row .choice {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .admit-row .choice input { width: 16px; height: 16px; }
+    .sign {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .sign .field { grid-template-columns: 180px 1fr; }
+
+    @media (max-width: 640px) {
+      .field, .sign .field { grid-template-columns: 1fr; gap: 2px; }
+      .sheet { padding: 12px; }
+    }
+
+    @media print {
+      .toolbar { display: none !important; }
+      body { background: #fff; font-size: 14px; }
+      .sheet-wrap { width: 100%; margin: 0; }
+      .sheet {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+      .title-block .logo {
+        width: 110px;
+        filter: grayscale(1) opacity(0.55);
+      }
+      h1 { color: #666; font-size: 16px; font-weight: 600; }
+      h2 { color: #555; font-size: 14px; font-weight: 600; }
+      .item { font-size: 13px; gap: 6px; }
+      .item .box { width: 13px; height: 13px; border-width: 1px; }
+      .field .ink, .admit .ink { border-bottom-color: #aaa; }
+      .block { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar" role="banner">
+    <div class="brand">
+      <img src="assets/logo.png" alt="У Михалыча" width="120" height="36" />
+      <span>Академия УМ · чек-лист супервайзера по персоналу</span>
+    </div>
+    <div class="actions">
+      <span class="status" id="save-status">онлайн-сохранение в этом браузере</span>
+      <button type="button" id="btn-save">Сохранить</button>
+      <button type="button" id="btn-clear">Очистить</button>
+      <button type="button" class="primary" id="btn-print">Печать / PDF</button>
+    </div>
+  </div>
+
+  <div class="sheet-wrap">
+    <article class="sheet" id="checklist">
+      <p class="motto">Делаем мир крепче</p>
+      <header class="title-block">
+        <img class="logo" src="assets/logo.png" alt="У Михалыча" width="250" height="72" />
+        <p class="eyebrow">Академия УМ · сеть «У Михалыча»</p>
+        <h1>Чек-лист супервайзера по персоналу</h1>
+      </header>
+
+      <div class="meta">
+        
+    <label class="field">
+      <span>Супервайзер по персоналу</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        
+    <label class="field">
+      <span>Магазин / точка</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        
+    <label class="field">
+      <span>СПК точки</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        
+    <label class="field">
+      <span>Дата визита</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        
+    <label class="field">
+      <span>С кем смотрели смену</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+      </div>
+
+      <p class="scheme">
+        <b>Зачем лист.</b> Один объёмный чек-лист на дела супервайзера и на полный разбор всех должностей розницы на точке:
+        СПК, ПК, РТЗ, кассир, кладовщик, МОП. Отметки хранятся в браузере. Лист можно напечатать.
+      </p>
+
+      <div class="toc">
+        <b>Содержание.</b>
+        1. Дела супервайзера ·
+        2. Вход на визит ·
+        3. СПК ·
+        4. ПК ·
+        5. РТЗ ·
+        6. Кассир ·
+        7. Кладовщик ·
+        8. МОП и заказы ·
+        9. Итог визита
+      </div>
+
+      
+    <section class="block">
+      <h2>1. Дела супервайзера по персоналу</h2>
+      <p class="when">Графики, штат, подбор, удержание, планы, обучение, отчётность — вне и между визитами</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Графики по курируемым магазинам сверены и актуальны</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Дыры в сменах закрыты: согласовано с СПК, сотрудник уведомлён</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Штатная расстановка по точкам сверена с фактом явки</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Открытые вакансии и приоритет закрытия по точкам зафиксированы</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Перебросы при нехватке персонала организованы и приняты точкой</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Явка после переброса проверена; при срыве график скорректирован</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Потребность в персонале актуализирована: должности, количество, срочность</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Собеседования проведены по скрипту / анкете должности</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Выход кандидата согласован: дата, смена, наставник, схема стажировки</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Первый день новичка проконтролирован; передача на адаптацию закрыта</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Сотрудники с риском увольнения выявлены; разговор проведён, причины записаны</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Меры удержания предложены или согласована замена и срок закрытия ставки</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Личные планы продаж внесены / скорректированы в 1С</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Планы сверены с расстановкой и открытыми ставками; СПК и сотрудники понимают цифры</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Новички и слабые сотрудники подключены к обучению / стажировке / тестам Академии</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Задачи в Битрикс24 по персоналу закрыты или с актуальным сроком</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Краткий отчёт руководителю: штат, риски, подбор, визиты, решения</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>2. Визит на точку. Вход</h2>
+      <p class="when">Перед разбором должностей: явка, внешний вид, план дня, общий обход</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Визит по плану объезда; магазин, дата и время зафиксированы</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">СПК точки знает цель визита; смена представлена</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Внешний вид смены: форма, бейджи, опрятность</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">TargControl: явка, опоздания, расхождения с графиком</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Пятиминутка / план дня на смене есть; задачи с исполнителями понятны</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Общий обход: улица → вход → зал → касса → склад</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>3. СПК. Полный контроль</h2>
+      <p class="when">Смена, зал, цифры, команда, касса, склад, задачи. Эталон — регламент и обязанности СПК</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Утро: анализ вчерашнего ТО, акций, неликвидов перед пятиминуткой</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Пятиминутка: внешний вид, цели дня, замечания с обхода, индивидуальные задания</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Обход: улица, касса, зал, склад — замечания с исполнителями и сроком</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Уличная выкладка полная; вывески, баннеры, парковка без мусора и машин сотрудников</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Тачки, мотоблоки, бетономешалки собраны и стоят в ширину и в глубину, не «по одной для вида»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Зал: чистота, проходы, ценники на всём выставленном, товар к продаже выставлен</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Пустые крючки / дыры: контроль по графику пн и чт; ТСД «Проверка крючков»; довыкладка</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Активная матрица, остаток 0: ценник не снят, висит «извиняшка»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Акционный стеллаж и корзина распродаж актуальны</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Мин-максы, «извиняшки», товарное наполнение KVI / ОВТ под контролем</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Неликвиды 180+: остатки, вид, комплектность, знания смены; проблемный список на виду у команды</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Контроль кассира, ПК, РТЗ и кладовщика в течение смены — замечания закрываются в смену</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Очереди на кассе: причины зафиксированы, меры приняты</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Пересчёт кассы не реже двух раз в день с актом</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Контроль качества приёмки не реже двух раз в день</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Веерный пересчёт по графику магазина — не менее 50 SKU в день</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Заказы клиентов: незакрытые под контролем; срок жизни заказа 14 дней</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Стол заказов и интернет-заказы: сборка → оплата → выдача без зависаний</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Кассовый отчёт с приложениями отправлен; тема письма: магазин и период</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Размен на кассе под контролем; запрос размена вовремя</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Задачи Битрикс24: просмотр, исполнение, делегирование, закрытие, сроки</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Брак: зона, учёт, меры; ответственный на точке понятен</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Отрицательные остатки и зависшие перемещения разобраны, не только зафиксированы</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Первичка в офис по графику; УПД по ЭДО в месяце отгрузки</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Инкассация по графику / инструкции (Сберинкассация)</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">График смен точки актуален; табель и расстановка сходятся</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Мотивация команды: цели понятны, обратная связь по результатам дня дана</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Жалобы и конфликты в зале разобраны; эскалация при необходимости</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Нештатные ситуации: кому звонить, знает СПК и смена</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Вечер: задачи дня закрыты или переданы; ответственный на вечер назначен</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>4. Продавец-консультант (ПК). Полный контроль</h2>
+      <p class="when">Продажа, зона, сервис, касса при необходимости, аналитика чеков. Эталон — стандарт ПК</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Встреча: заметил → поздоровался → назвал себя → спросил, чем помочь</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Сначала потребность, потом совет: что делают, где, кто будет работать, что уже куплено</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Оффер 2–3 варианта; совместимость объясняет до оплаты</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Допродажа / сопутка один раз по задаче клиента; отказ принимает спокойно</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Знание товара зоны: назначение, ограничение, совместимость; не обещает того, чего нет на карточке</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Наличие по телефону — только после проверки в 1С</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Поиск в Помощнике продаж, остаток, карточка — уверенно</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Конфликт по цене: извинение → сверка → решение через СПК → устранить причину</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Лояльность: QR / бонусы; приглашение в канал МАКС, где принято</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Доп. сервисы: доставка, погрузка, под заказ, кредит, заточка, сборка — предлагает по задаче</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Помощь донести / довезти до машины: предлагает сам, без ожидания просьбы</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Выкладка, ценники, чистота своей зоны; пустой крючок сообщает СПК в ту же смену</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Утренняя выкатка и вечерняя закатка своей зоны; пустое место пополняет в смену</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Битый / мятый / некомплект снимает с полки и сразу сообщает СПК</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Когда кассира нет или касса свободна — проводит оплату под своей учётной записью</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Цена на ценнике и на кассе совпадают; при расхождении зовёт СПК</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Форма, бейдж, закрытая обувь; приходит к началу смены</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Поручения СПК закрывает в срок; если мешает очередь — говорит об этом сразу</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Смотрит аналитику своих чеков за день; понимает личный план</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Сборка техники вместе с РТЗ на примере своей зоны — умеет показать</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Конец смены: зона в порядке, незакрытое передано</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>5. Работник торгового зала (РТЗ). Полный контроль</h2>
+      <p class="when">Улица, сборка техники, выкладка, чистота, ценники, закатка. Зона к концу смены закрыта</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Зона ответственности РТЗ понятна: что закрывает лично, что делает вместе со сменой</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Утро: выкатка уличной выкладки до открытия; список из 1С сверен</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Тачки собраны и стоят рядом, в ширину и в глубину; на складе нет «запасных в коробках для вида»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Мотоблоки собраны и выставлены; неисправные и некомплект сразу сняты с продажи</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Бетономешалки и прочая крупная техника собраны, чистые, с ценником</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Сборка техники: последовательность, крепёж, проверка хода, ГСМ и расходники на месте</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Предпродажная подготовка: товар готов к показу, не «в коробке до замечания»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Довыкладка полок и крючков в течение смены; брошенный товар возвращает на место</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Неразобранный приход не лежит в проходе: разобран или согласован со складом срок</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Ценники на своей зоне: есть, актуальны, формат единый; расхождение цен — СПК</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Чистота: вход, пол, полки, образцы, кассовая зона рядом с зоной РТЗ</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Проходы свободны: тележка проходит; товар не создаёт опасность</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Уличная зона: порядок, нет мусора, товар не мешает проходу покупателей</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Культура обращения с товаром: не бросает, не ставит мокрым на картон, не захламляет</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Помощь складу и кассе по запросу СПК без споров «это не моя зона»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Вечерняя закатка улицы и зоны: товар убран или закреплён по правилам точки</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">К концу смены зона РТЗ закрыта «под ключ»: выкладка, чистота, ценники, без хвостов</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">СПК видит работу РТЗ по товару: выкладка, брошенное, приход, ценники, чистота — без накопления замечаний</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>6. Кассир. Полный контроль</h2>
+      <p class="when">Смена, продажа, возврат, размен, отчёт, инкассация, очередь</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Выход за 15 минут до смены; открытие и закрытие смены по правилам</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Приветствие и прощание; тон спокойный</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Продажа наличными и картой; сумма вслух; пакет предлагает</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Допродажа на кассе: одна нужная вещь к покупке</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Карта / бонусы / промокоды / подарочный сертификат — по правилам</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Весовой товар и весы; работа и продажи на КСО</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Возврат своего магазина: чек, основания, оформление</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Возврат / товар из другого магазина сети: порядок и кого привлечь</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Размен: когда просить; сейф-пакет под камерами; внесение ДС</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Пересчёт кассы; прикассовая зона чистая, расходники есть</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Вечерний кассовый отчёт: тема письма магазин и период</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Инкассация по графику / инструкции (под контролем СПК)</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Действия при ошибке терминала и типовых сбоях кассы</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Печать и замена ценников у кассы; акции у кассы актуальны</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Очередь не стоит без реакции: зовёт помощь смены</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Юрлица на кассе: оплата, УПД, ЭДО — связка с МОП / СПК</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Чужой логин не использует; свою учётную запись не отдаёт</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>7. Кладовщик. Полный контроль</h2>
+      <p class="when">Приёмка, перемещения, заказы, брак, минусы, закрытие склада</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Обход склада и зоны приёмки: маршруты, зоны, брак, ворота</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">1С:Торговля по складу: остаток, карточка, документы дня</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">ТСД на складе; вечером ТСД закрыт</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Приёмка с РЦ: сверка, качество, повреждения ловит сразу</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Приёмка от поставщиков: документы и качество</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Непринятый товар не выставляет в зал</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Перемещения между магазинами под клиентов; зависшие не копит</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Подготовка к перемещению на РЦ или по заявке ИМ</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Сборка автозаказов; сборка и выдача заказов интернет-магазина</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Пересчёты и задания ревизионного отдела</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Брак: зона, учёт, меры; обычно ответственный за брак на точке</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Отрицательные остатки: алгоритм минуса, не «потом»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">FIFO / ротация; ГСМ и расходники для сборки техники в наличии</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Связка склад — МОП на корпоративной отгрузке</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Конец дня: 1С проведено, брак в зоне, ворота на ключ</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>8. МОП, стол заказов и юрлица</h2>
+      <p class="when">Корпоративные отгрузки, ЭДО, монитор ИМ, связка со складом и кассой</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Карточка корпоративного клиента и условия работы найдены</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Заказ и реализация для юрлица оформлены корректно</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Доверенность и комплект документов на отгрузку проверены</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">УПД в день отгрузки; подписание в том же календарном месяце</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Работа в ЭДО без критичных ошибок</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Стол заказов / монитор ИМ: сборка → оплата → «Выдача заказа» один раз → СФ</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Резервы: нет товара — «по мере поступления»; есть — «на складе»</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Срок жизни заказа 14 дней — под контролем</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Связка МОП — склад — касса на отгрузке понятна всем троим</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Типовые вопросы и возражения юрлица отрабатывает спокойно</span>
+    </label></div>
+    </section>
+    <section class="block">
+      <h2>9. Итог визита</h2>
+      <p class="when">Оценка людей, обратная связь, задачи, эскалация</p>
+      <div class="list">
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Эффективность в зале / на кассе / на складе / у РТЗ оценена по факту смены</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Кандидаты «под замену» и сотрудники с потенциалом роста отмечены</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Обратная связь СПК и линейному персоналу дана по итогам визита</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Проблемы точки (персонал, сервис, дисциплина) зафиксированы</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Эскалация руководителю сделана, если точка сама не тянет</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Комфорт и конфликты на точке: разговор состоялся, меры понятны</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Обучение / доучивание назначено конкретным людям со сроком</span>
+    </label>
+
+    <label class="item">
+      <input type="checkbox" data-k />
+      <span class="box" aria-hidden="true"></span>
+      <span class="txt">Задачи после визита стоят в Битрикс24: что / кто / срок / критерий «готово»</span>
+    </label></div>
+    </section>
+
+      <section class="admit">
+        <h2>Закрытие визита</h2>
+        <div class="admit-row">
+          <span>Точка по персоналу:</span>
+          <label class="choice"><input type="checkbox" data-k /> в норме</label>
+          <label class="choice"><input type="checkbox" data-k /> есть риски</label>
+          <label class="choice"><input type="checkbox" data-k /> нужна срочная замена / усиление</label>
+        </div>
+        <div class="admit-row">
+          <span>Разбор должностей закрыт:</span>
+          <label class="choice"><input type="checkbox" data-k /> СПК</label>
+          <label class="choice"><input type="checkbox" data-k /> ПК</label>
+          <label class="choice"><input type="checkbox" data-k /> РТЗ</label>
+          <label class="choice"><input type="checkbox" data-k /> кассир</label>
+          <label class="choice"><input type="checkbox" data-k /> кладовщик</label>
+          <label class="choice"><input type="checkbox" data-k /> МОП</label>
+        </div>
+        
+    <label class="field">
+      <span>Главный риск / дыра</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        
+    <label class="field">
+      <span>Что сделать до следующего визита</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        <div class="sign">
+          
+    <label class="field">
+      <span>Подпись супервайзера</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+          
+    <label class="field">
+      <span>Подпись СПК точки</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+          
+    <label class="field">
+      <span>Дата</span>
+      <input type="text" data-k class="ink" autocomplete="off" />
+    </label>
+        </div>
+      </section>
+    </article>
+  </div>
+
+  <script>
+  (function () {
+    const KEY = "um-academy-supervisor-personnel-checklist-v1";
+    const root = document.getElementById("checklist");
+    const status = document.getElementById("save-status");
+    const fields = () => root.querySelectorAll("[data-k]");
+
+    function assignIds() {
+      fields().forEach((el, i) => {
+        if (!el.dataset.id) el.dataset.id = "f" + i;
+      });
+    }
+
+    function collect() {
+      const data = {};
+      fields().forEach((el) => {
+        const id = el.dataset.id;
+        if (el.type === "checkbox") data[id] = el.checked;
+        else data[id] = el.value;
+      });
+      return data;
+    }
+
+    function apply(data) {
+      if (!data) return;
+      fields().forEach((el) => {
+        const id = el.dataset.id;
+        if (!(id in data)) return;
+        if (el.type === "checkbox") el.checked = !!data[id];
+        else el.value = data[id] || "";
+      });
+    }
+
+    function save(manual) {
+      try {
+        localStorage.setItem(KEY, JSON.stringify(collect()));
+        const t = new Date();
+        status.textContent = (manual ? "сохранено " : "автосохранение ") +
+          t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+      } catch (e) {
+        status.textContent = "не удалось сохранить (память браузера)";
+      }
+    }
+
+    function load() {
+      try {
+        const raw = localStorage.getItem(KEY);
+        if (raw) apply(JSON.parse(raw));
+      } catch (e) { /* ignore */ }
+    }
+
+    assignIds();
+    load();
+
+    let timer;
+    root.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => save(false), 400);
+    });
+    root.addEventListener("change", () => save(false));
+
+    document.getElementById("btn-save").addEventListener("click", () => save(true));
+    document.getElementById("btn-print").addEventListener("click", () => {
+      save(true);
+      window.print();
+    });
+    document.getElementById("btn-clear").addEventListener("click", () => {
+      if (!confirm("Очистить все отметки и поля в этом браузере?")) return;
+      fields().forEach((el) => {
+        if (el.type === "checkbox") el.checked = false;
+        else el.value = "";
+      });
+      localStorage.removeItem(KEY);
+      status.textContent = "очищено";
+    });
+  })();
+  </script>
+</body>
+</html>
