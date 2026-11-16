@@ -235,6 +235,25 @@
     }
     .sign .field { grid-template-columns: 180px 1fr; }
 
+    .mail-status {
+      margin: 0 0 14px;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #444;
+      background: #f7f7f7;
+    }
+    .mail-status.ok { border-color: #888; background: #eee; }
+    .mail-status.bad { border-color: #999; background: #f3f3f3; }
+    .mail-status a { color: #222; }
+    .mail-hint {
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.45;
+    }
+
     @media (max-width: 640px) {
       .field, .sign .field { grid-template-columns: 1fr; gap: 2px; }
       .sheet { padding: 12px; }
@@ -242,6 +261,7 @@
 
     @media print {
       .toolbar { display: none !important; }
+      .mail-status, .mail-hint { display: none !important; }
       body { background: #fff; font-size: 14px; }
       .sheet-wrap { width: 100%; margin: 0; }
       .sheet {
@@ -270,10 +290,10 @@
       <span>Академия УМ · чек-лист супервайзера по персоналу</span>
     </div>
     <div class="actions">
-      <span class="status" id="save-status">онлайн-сохранение в этом браузере</span>
-      <button type="button" id="btn-save">Сохранить</button>
+      <span class="status" id="save-status">сохранение в браузере · отправка на почту</span>
+      <button type="button" class="primary" id="btn-save">Сохранить и отправить</button>
       <button type="button" id="btn-clear">Очистить</button>
-      <button type="button" class="primary" id="btn-print">Печать / PDF</button>
+      <button type="button" id="btn-print">Печать / PDF</button>
     </div>
   </div>
 
@@ -316,8 +336,11 @@
 
       <p class="scheme">
         <b>Зачем лист.</b> Один объёмный чек-лист на дела супервайзера и на полный разбор всех должностей розницы на точке:
-        СПК, ПК, РТЗ, кассир, кладовщик, МОП. Отметки хранятся в браузере. Лист можно напечатать.
+        СПК, ПК, РТЗ, кассир, кладовщик, МОП. Отметки хранятся в браузере. По кнопке «Сохранить и отправить» результат уходит на почту.
       </p>
+
+      <p class="mail-hint">Кнопка «Сохранить и отправить» пишет лист в этот браузер и отправляет сводку на arimberg@gmail.com. Без имени супервайзера и магазина письмо не уйдёт.</p>
+      <div id="mail-status" class="mail-status" hidden></div>
 
       <div class="toc">
         <b>Содержание.</b>
@@ -1272,9 +1295,17 @@
 
   <script>
   (function () {
-    const KEY = "um-academy-supervisor-personnel-checklist-v1";
+    const KEY = "um-academy-supervisor-personnel-checklist-v2";
+    const MAIL_TO = "arimberg@gmail.com";
+    const MAIL_WEB3FORMS_KEY = "75e8c010-1d63-4fb9-b6c9-797553dcbeca";
+    const MAIL_WEB3FORMS_URL = "https://api.web3forms.com/submit";
+    const MAIL_FORMSUBMIT_AJAX = "https://formsubmit.co/ajax/" + MAIL_TO;
+    const MAIL_FORMSUBMIT_FORM = "https://formsubmit.co/" + MAIL_TO;
+
     const root = document.getElementById("checklist");
     const status = document.getElementById("save-status");
+    const mailStatus = document.getElementById("mail-status");
+    const btnSave = document.getElementById("btn-save");
     const fields = () => root.querySelectorAll("[data-k]");
 
     function assignIds() {
@@ -1303,14 +1334,27 @@
       });
     }
 
-    function save(manual) {
+    function fieldValue(labelText) {
+      const labels = root.querySelectorAll("label.field");
+      for (const label of labels) {
+        const span = label.querySelector(":scope > span");
+        if (!span || span.textContent.trim() !== labelText) continue;
+        const input = label.querySelector("input.ink");
+        return input ? (input.value || "").trim() : "";
+      }
+      return "";
+    }
+
+    function saveLocal(manual) {
       try {
         localStorage.setItem(KEY, JSON.stringify(collect()));
         const t = new Date();
         status.textContent = (manual ? "сохранено " : "автосохранение ") +
           t.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+        return true;
       } catch (e) {
         status.textContent = "не удалось сохранить (память браузера)";
+        return false;
       }
     }
 
@@ -1321,19 +1365,241 @@
       } catch (e) { /* ignore */ }
     }
 
+    function setMailStatus(kind, text, htmlExtra) {
+      mailStatus.hidden = false;
+      mailStatus.className = "mail-status" + (kind ? " " + kind : "");
+      mailStatus.textContent = text;
+      if (htmlExtra) mailStatus.innerHTML = text + " " + htmlExtra;
+      mailStatus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    function buildReport() {
+      const supervisor = fieldValue("Супервайзер по персоналу");
+      const store = fieldValue("Магазин / точка");
+      const spk = fieldValue("СПК точки");
+      const visitDate = fieldValue("Дата визита");
+      const withWhom = fieldValue("С кем смотрели смену");
+      const risk = fieldValue("Главный риск / дыра");
+      const nextStep = fieldValue("Что сделать до следующего визита");
+      const signSv = fieldValue("Подпись супервайзера");
+      const signSpk = fieldValue("Подпись СПК точки");
+      const signDate = fieldValue("Дата");
+
+      const lines = [];
+      lines.push("Чек-лист супервайзера по персоналу «У Михалыча»");
+      lines.push("");
+      lines.push("Супервайзер: " + (supervisor || "—"));
+      lines.push("Магазин: " + (store || "—"));
+      lines.push("СПК точки: " + (spk || "—"));
+      lines.push("Дата визита: " + (visitDate || "—"));
+      lines.push("С кем смотрели смену: " + (withWhom || "—"));
+      lines.push("Страница: " + location.href);
+      lines.push("");
+
+      let checked = 0;
+      let total = 0;
+      root.querySelectorAll("section.block, section.admit").forEach((section) => {
+        const titleEl = section.querySelector("h2");
+        const title = titleEl ? titleEl.textContent.trim() : "Блок";
+        const items = [];
+        section.querySelectorAll("label.item").forEach((label) => {
+          const box = label.querySelector('input[type="checkbox"]');
+          const txt = label.querySelector(".txt");
+          if (!box || !txt) return;
+          total += 1;
+          const mark = box.checked ? "[x]" : "[ ]";
+          if (box.checked) checked += 1;
+          items.push(mark + " " + txt.textContent.trim());
+        });
+        section.querySelectorAll("label.choice").forEach((label) => {
+          const box = label.querySelector('input[type="checkbox"]');
+          if (!box) return;
+          total += 1;
+          const mark = box.checked ? "[x]" : "[ ]";
+          if (box.checked) checked += 1;
+          items.push(mark + " " + label.textContent.trim());
+        });
+        if (!items.length) return;
+        lines.push("=== " + title + " ===");
+        items.forEach((line) => lines.push(line));
+        lines.push("");
+      });
+
+      lines.push("Итого отмечено: " + checked + " из " + total);
+      lines.push("Главный риск / дыра: " + (risk || "—"));
+      lines.push("Что сделать до следующего визита: " + (nextStep || "—"));
+      lines.push("Подпись супервайзера: " + (signSv || "—"));
+      lines.push("Подпись СПК точки: " + (signSpk || "—"));
+      lines.push("Дата: " + (signDate || "—"));
+
+      let message = lines.join("\n");
+      if (message.length > 12000) {
+        message = message.slice(0, 12000) + "\n… Текст обрезан. Полный лист остаётся в браузере на странице чек-листа.";
+      }
+
+      return {
+        supervisor: supervisor,
+        store: store,
+        spk: spk,
+        visitDate: visitDate,
+        checked: checked,
+        total: total,
+        subject: "Чек-лист супервайзера: " + (supervisor || "без ФИО") + " · " + (store || "магазин не указан"),
+        message: message,
+      };
+    }
+
+    async function sendWeb3Forms(payload) {
+      const res = await fetch(MAIL_WEB3FORMS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          access_key: MAIL_WEB3FORMS_KEY,
+          subject: payload.subject,
+          from_name: "Чек-лист супервайзера У Михалыча",
+          name: payload.supervisor || "Супервайзер",
+          email: MAIL_TO,
+          Супервайзер: payload.supervisor,
+          Магазин: payload.store,
+          СПК: payload.spk,
+          Дата_визита: payload.visitDate,
+          Отмечено: payload.checked + " из " + payload.total,
+          message: payload.message,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const ok = res.ok && data.success !== false && (data.success === true || data.success === "true");
+      return { ok: ok, provider: "Web3Forms", message: String(data.message || (ok ? "ok" : "HTTP " + res.status)) };
+    }
+
+    async function sendFormSubmitAjax(payload) {
+      const res = await fetch(MAIL_FORMSUBMIT_AJAX, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({
+          name: payload.supervisor || "Супервайзер",
+          email: MAIL_TO,
+          _replyto: MAIL_TO,
+          _subject: payload.subject,
+          _template: "table",
+          _captcha: "false",
+          _url: location.href,
+          store: payload.store,
+          spk: payload.spk,
+          visit_date: payload.visitDate,
+          checked: payload.checked + " / " + payload.total,
+          message: payload.message,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      const ok = data.success === true || data.success === "true";
+      return { ok: ok, provider: "FormSubmit", message: String(data.message || (ok ? "ok" : "HTTP " + res.status)) };
+    }
+
+    async function sendFormSubmitForm(payload) {
+      await new Promise((resolve) => {
+        const frameName = "mail_frame_" + Date.now();
+        const iframe = document.createElement("iframe");
+        iframe.name = frameName;
+        iframe.title = "mail";
+        iframe.style.display = "none";
+        document.body.appendChild(iframe);
+        const mailForm = document.createElement("form");
+        mailForm.method = "POST";
+        mailForm.action = MAIL_FORMSUBMIT_FORM;
+        mailForm.target = frameName;
+        mailForm.acceptCharset = "UTF-8";
+        mailForm.style.display = "none";
+        const fieldsMap = {
+          name: payload.supervisor || "Супервайзер",
+          email: MAIL_TO,
+          _subject: payload.subject,
+          _template: "table",
+          _captcha: "false",
+          _next: "https://formsubmit.co/thanks.html",
+          store: payload.store,
+          spk: payload.spk,
+          visit_date: payload.visitDate,
+          checked: payload.checked + " / " + payload.total,
+          message: payload.message,
+        };
+        Object.entries(fieldsMap).forEach(([key, value]) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = value == null ? "" : String(value);
+          mailForm.appendChild(input);
+        });
+        document.body.appendChild(mailForm);
+        mailForm.submit();
+        window.setTimeout(() => {
+          mailForm.remove();
+          iframe.remove();
+          resolve();
+        }, 2200);
+      });
+      return { ok: true, provider: "FormSubmit-форма", message: "form posted" };
+    }
+
+    async function saveAndSend() {
+      saveLocal(true);
+      const payload = buildReport();
+      if (!payload.supervisor) {
+        setMailStatus("bad", "Укажите супервайзера — без этого письмо не отправим.");
+        const first = root.querySelector("label.field input.ink");
+        if (first) first.focus();
+        return;
+      }
+      if (!payload.store) {
+        setMailStatus("bad", "Укажите магазин / точку — без этого письмо не отправим.");
+        return;
+      }
+
+      btnSave.disabled = true;
+      setMailStatus("", "Сохранено. Отправляем на " + MAIL_TO + "…");
+
+      try {
+        const results = [];
+        try { results.push(await sendWeb3Forms(payload)); }
+        catch (err) { results.push({ ok: false, provider: "Web3Forms", message: String(err) }); }
+        try { results.push(await sendFormSubmitAjax(payload)); }
+        catch (err) { results.push({ ok: false, provider: "FormSubmit", message: String(err) }); }
+        try { await sendFormSubmitForm(payload); }
+        catch (_) { /* iframe — запасной канал */ }
+
+        const ok = results.filter((r) => r.ok);
+        const via = ok.map((r) => r.provider).join(" + ");
+        const fail = results.filter((r) => !r.ok).map((r) => r.provider + ": " + r.message).join("; ");
+        if (ok.length) {
+          setMailStatus("ok", "Сохранено в браузере и отправлено на " + MAIL_TO + (via ? " (" + via + ")" : "") + ". Проверьте входящие и «Спам».");
+        } else {
+          const mail = "mailto:" + MAIL_TO +
+            "?subject=" + encodeURIComponent(payload.subject) +
+            "&body=" + encodeURIComponent(payload.message.slice(0, 1600));
+          setMailStatus(
+            "bad",
+            "В браузере сохранено, автоотправка не подтвердилась" + (fail ? " (" + fail + ")" : "") + ".",
+            "<a href=\"" + mail + "\">Открыть письмо на " + MAIL_TO + "</a>"
+          );
+        }
+      } finally {
+        btnSave.disabled = false;
+      }
+    }
+
     assignIds();
     load();
 
     let timer;
     root.addEventListener("input", () => {
       clearTimeout(timer);
-      timer = setTimeout(() => save(false), 400);
+      timer = setTimeout(() => saveLocal(false), 400);
     });
-    root.addEventListener("change", () => save(false));
+    root.addEventListener("change", () => saveLocal(false));
 
-    document.getElementById("btn-save").addEventListener("click", () => save(true));
+    btnSave.addEventListener("click", () => { saveAndSend(); });
     document.getElementById("btn-print").addEventListener("click", () => {
-      save(true);
+      saveLocal(true);
       window.print();
     });
     document.getElementById("btn-clear").addEventListener("click", () => {
@@ -1344,6 +1610,8 @@
       });
       localStorage.removeItem(KEY);
       status.textContent = "очищено";
+      mailStatus.hidden = true;
+      mailStatus.textContent = "";
     });
   })();
   </script>
